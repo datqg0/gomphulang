@@ -1,7 +1,30 @@
 const Product = require('../models/product.model');
 
-const getAllProducts = async (filters = {}) => {
-    return await Product.find(filters).sort({ createdAt: -1 });
+const getAllProducts = async ({ category, search, page = 1, limit = 10 } = {}) => {
+    const filters = {};
+    if (category && category !== 'all') {
+        filters.category = category;
+    }
+    if (search) {
+        filters.name = { $regex: search, $options: 'i' };
+    }
+
+    const skip = (page - 1) * limit;
+
+    const [products, totalProducts] = await Promise.all([
+        Product.find(filters)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit),
+        Product.countDocuments(filters)
+    ]);
+
+    return {
+        products,
+        totalProducts,
+        totalPages: Math.ceil(totalProducts / limit),
+        currentPage: page
+    };
 };
 
 const getProductById = async (id) => {

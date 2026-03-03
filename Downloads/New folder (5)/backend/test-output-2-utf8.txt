@@ -1,0 +1,3 @@
+﻿[dotenv@17.3.1] injecting env (8) from .env -- tip: â™ï¸  enable debug logging with { debug: true }
+Testing AI Service with AIML API...
+AIML_API_KEY present: true

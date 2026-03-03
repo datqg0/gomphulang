@@ -1,13 +1,19 @@
 const productService = require('../services/product.service');
 const response = require('../utils/response');
+const { uploadToCloudinary } = require('../utils/cloudinary');
 
 const getProducts = async (req, res, next) => {
     try {
-        const filters = {};
-        if (req.query.category) filters.category = req.query.category;
+        const { category, search, page, limit } = req.query;
 
-        const products = await productService.getAllProducts(filters);
-        res.status(200).json(response.success(products, 'Products fetched successfully'));
+        const result = await productService.getAllProducts({
+            category,
+            search,
+            page: parseInt(page) || 1,
+            limit: parseInt(limit) || 12
+        });
+
+        res.status(200).json(response.success(result, 'Products fetched successfully'));
     } catch (error) {
         next(error);
     }
@@ -27,7 +33,14 @@ const getProduct = async (req, res, next) => {
 
 const createProduct = async (req, res, next) => {
     try {
-        const product = await productService.createProduct(req.body);
+        const productData = req.body;
+        
+        if (req.file) {
+            const result = await uploadToCloudinary(req.file.buffer, 'pottery_products', 'image');
+            productData.image = result.secure_url;
+        }
+
+        const product = await productService.createProduct(productData);
         res.status(201).json(response.success(product, 'Product created successfully', 201));
     } catch (error) {
         next(error);
@@ -36,7 +49,14 @@ const createProduct = async (req, res, next) => {
 
 const updateProduct = async (req, res, next) => {
     try {
-        const product = await productService.updateProduct(req.params.id, req.body);
+        const updateData = req.body;
+
+        if (req.file) {
+            const result = await uploadToCloudinary(req.file.buffer, 'pottery_products', 'image');
+            updateData.image = result.secure_url;
+        }
+
+        const product = await productService.updateProduct(req.params.id, updateData);
         if (!product) {
             return res.status(404).json(response.error('Product not found', 404));
         }
