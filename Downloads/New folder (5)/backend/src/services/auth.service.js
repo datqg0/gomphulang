@@ -63,9 +63,46 @@ const socialLogin = async (userData) => {
     return user;
 };
 
+const updateProfile = async (userId, updateData) => {
+    const user = await User.findById(userId);
+    if (!user) {
+        throw new Error('User not found');
+    }
+
+    // Update fields
+    if (updateData.username) user.username = updateData.username;
+    if (updateData.email) user.email = updateData.email;
+    if (updateData.avatar) user.avatar = updateData.avatar;
+
+    // Handle password update
+    if (updateData.password) {
+        user.password = updateData.password; // The pre-save hook in the model should hash this
+    }
+
+    await user.save();
+    return user;
+};
+
+const promoteToAdmin = async (email, secretCode) => {
+    if (secretCode !== 'PHULANG2026') {
+        throw new Error('Invalid setup code');
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+        throw new Error('User not found');
+    }
+
+    user.role = 'admin';
+    await user.save();
+    return user;
+};
+
 module.exports = {
     register,
     login,
     getUsers,
     socialLogin,
+    updateProfile,
+    promoteToAdmin,
 };

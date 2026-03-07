@@ -12,7 +12,7 @@ cloudinary.config({
 const upload = multer({ storage: multer.memoryStorage() });
 
 // Upload buffer to cloudinary
-const uploadToCloudinary = (buffer, folder = 'pottery_app', resourceType = 'image') => {
+const uploadToCloudinary = (buffer, folder = 'pottery_app', resourceType = 'auto') => {
     return new Promise((resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
             {

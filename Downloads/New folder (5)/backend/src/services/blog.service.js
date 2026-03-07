@@ -20,6 +20,9 @@ const getBlogById = async (id) => {
 const createBlog = async (blogData, frontendBaseUrl) => {
     const blog = new Blog(blogData);
 
+    // Validate to trigger the 'pre-validate' hook which generates the slug
+    await blog.validate();
+
     // Generate QR Code for the blog URL
     const blogUrl = `${frontendBaseUrl}/blogs/${blog.slug}`;
     try {
@@ -40,19 +43,19 @@ const createBlog = async (blogData, frontendBaseUrl) => {
 };
 
 const updateBlog = async (id, updateData, frontendBaseUrl) => {
-    // If slug changes, we might want to regenerate QR code
-    if (updateData.slug || updateData.title) {
-        const slug = updateData.slug || updateData.title
-            .toLowerCase()
-            .normalize('NFD')
-            .replace(/[\u0300-\u036f]/g, '')
-            .replace(/[^\w\s-]/g, '')
-            .replace(/[\s_-]+/g, '-')
-            .replace(/^-+|-+$/g, '');
+    const blog = await Blog.findById(id);
+    if (!blog) return null;
 
-        const blogUrl = `${frontendBaseUrl}/blogs/${slug}`;
+    Object.assign(blog, updateData);
+
+    // Validate to trigger the 'pre-validate' hook to update slug if title changed
+    await blog.validate();
+
+    // If title or slug changes, we might want to regenerate QR code
+    if (updateData.slug || updateData.title) {
+        const blogUrl = `${frontendBaseUrl}/blogs/${blog.slug}`;
         try {
-            updateData.qrCode = await QRCode.toDataURL(blogUrl, {
+            blog.qrCode = await QRCode.toDataURL(blogUrl, {
                 color: { dark: '#8B4513', light: '#F5E6D3' },
                 width: 300,
                 margin: 2
@@ -62,7 +65,7 @@ const updateBlog = async (id, updateData, frontendBaseUrl) => {
         }
     }
 
-    return await Blog.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
+    return await blog.save();
 };
 
 const deleteBlog = async (id) => {

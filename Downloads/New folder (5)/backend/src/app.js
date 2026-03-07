@@ -6,6 +6,8 @@ const authRoutes = require('./routes/auth.route');
 const aiRoutes = require('./routes/ai.route');
 const model3dRoutes = require('./routes/model3d.route');
 const blogRoutes = require('./routes/blog.route');
+const uploadRoutes = require('./routes/upload.route');
+const orderRoutes = require('./routes/order.route');
 const errorMiddleware = require('./middleware/error.middleware');
 
 const app = express();
@@ -22,6 +24,8 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/model3d', model3dRoutes);
 app.use('/api/blogs', blogRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

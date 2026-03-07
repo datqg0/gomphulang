@@ -32,15 +32,14 @@ const categorySchema = new mongoose.Schema(
     }
 );
 
-// Create slug from name before saving
-categorySchema.pre('save', function (next) {
-    if (this.isModified('name')) {
+// Create slug from name before validation
+categorySchema.pre('validate', async function () {
+    if (this.name && !this.slug) {
         this.slug = this.name
             .toLowerCase()
             .replace(/[^\w ]+/g, '')
             .replace(/ +/g, '-');
     }
-    next();
 });
 
 const Category = mongoose.model('Category', categorySchema);

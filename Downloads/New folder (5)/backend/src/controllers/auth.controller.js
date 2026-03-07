@@ -49,8 +49,26 @@ const socialLogin = async (req, res, next) => {
     try {
         const user = await authService.socialLogin(req.body);
         const token = tokenUtil.generateToken(user);
-
         res.status(200).json(response.success({ user, token }, 'User logged in via social account successfully'));
+    } catch (error) {
+        next(error);
+    }
+};
+
+const updateProfile = async (req, res, next) => {
+    try {
+        const user = await authService.updateProfile(req.user._id, req.body);
+        res.status(200).json(response.success(user, 'Profile updated successfully'));
+    } catch (error) {
+        next(error);
+    }
+};
+
+const setupAdmin = async (req, res, next) => {
+    try {
+        const { email, code } = req.body;
+        const user = await authService.promoteToAdmin(email, code);
+        res.status(200).json(response.success(user, 'User promoted to admin successfully'));
     } catch (error) {
         next(error);
     }
@@ -61,4 +79,6 @@ module.exports = {
     login,
     getUsers,
     socialLogin,
+    updateProfile,
+    setupAdmin
 };
